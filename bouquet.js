@@ -17,8 +17,8 @@
 
   const PALETTES = [
     { // cherry red and ivory lilies
-      petal: ['#cf112f', '#f7f0e2', '#b00d24', '#fcf8ef', '#d81a34', '#efe4cf'], edge: null,
-      blush: '#dda6a8', throat: '#e6cf74', vein: 'rgba(90,8,22,0.45)', anther: '#3a160a', spots: true,
+      petal: ['#cf112f', '#e7dbc3', '#b00d24', '#f1e6d4', '#d81a34', '#ddcfb4'], edge: null,
+      blush: '#dda6a8', throat: '#e6cf74', vein: 'rgba(80,6,18,0.5)', anther: '#3a160a', spots: true,
     },
     { // white oriental lilies
       petal: '#f6f2ea', edge: '#ffffff', blush: '#d8dcc0', throat: '#c8d87a', vein: 'rgba(120,130,90,0.4)',
@@ -85,23 +85,22 @@
   const LEAF_START = 1.0;
   const BUD_START = 2.2;
   const BLUSH_START = 3.6;
-  const OPEN_START = 5.0, OPEN_GAP = 0.62, OPEN_DUR = 3.2;
+  const OPEN_START = 5.0, OPEN_GAP = 0.7, OPEN_DUR = 3.0;
 
   function buildScene() {
     const r = rng(11);
     const S = { stems: [], leaves: [], buds: [] };
 
-    // [top x, top y, side pedicels]
+    // [top x, top y, side pedicels] — left to right, so the colours alternate
     const tops = [
-      [255, 505, 1], [310, 470, 2], [395, 360, 2], [455, 258, 2], [500, 300, 3],
-      [560, 252, 1], [600, 350, 2], [700, 420, 2], [740, 500, 1], [775, 530, 1],
-      [350, 560, 1], [650, 560, 1],
+      [235, 530, 1], [310, 470, 2], [350, 560, 1], [395, 360, 2], [500, 300, 3],
+      [600, 350, 2], [650, 560, 1], [700, 420, 2], [740, 500, 1], [800, 545, 1],
     ];
-    for (const [tx, ty, sides] of tops) {
+    tops.forEach(([tx, ty, sides], ti) => {
       const bx = 485 + r() * 30;
       const stem = [[bx, 1090], [bx + (tx - bx) * 0.1, 860], [lerp(bx, tx, 0.7), ty + 220], [tx, ty]];
       const lean = (tx - 500) * 0.1;
-      const stemRef = { pts: stem, start: STEM_START + r() * 0.4 };
+      const stemRef = { pts: stem, start: STEM_START + r() * 0.4, tint: ti };
       S.stems.push(stemRef);
 
       // lance-shaped leaves spiral up the middle of each stem
@@ -127,10 +126,25 @@
         const ped = [base, [lerp(base[0], end[0], 0.3), base[1] - len * 0.35], [lerp(base[0], end[0], 0.8), lerp(base[1], end[1], 0.7)], end];
         S.buds.push({ stem, stemRef, at, ped, dir: ang });
       }
-    }
+    });
 
-    // decide each bud's fate: about half open fully, a few only blush, the rest stay green
+    // decide each bud's fate: a third open fully, a few only blush, the rest stay green.
+    // Opens are spread over different stems so no two full lilies sit on top of each other.
     const order = S.buds.map((_, i) => i).sort(() => r() - 0.5);
+    const opens = [];
+    const blush = new Set();
+    const openStems = new Set();
+    for (const idx of order) {
+      const stemRef = S.buds[idx].stemRef;
+      if (opens.length < 9) {
+        if (openStems.has(stemRef)) continue;
+        openStems.add(stemRef);
+        opens.push(idx);
+      } else if (blush.size < 5) {
+        blush.add(idx);
+      }
+    }
+    const openRank = new Map(opens.map((idx, i) => [idx, i]));
     order.forEach((idx, rank) => {
       const b = S.buds[idx];
       b.len = 120 + r() * 40;
@@ -138,12 +152,13 @@
       b.squash = 0.6 + r() * 0.25;
       b.twist = (r() - 0.5) * 0.8;
       b.droop = rad((b.dir > rad(-90) ? 1 : -1) * (15 + r() * 20));
-      b.colorIdx = rank;
+      b.colorIdx = b.stemRef.tint;                 // one cultivar per stem: red, white, red…
+      b.depth = b.ped ? b.ped[3][1] : bez(b.stem, 1)[1];   // stable front-to-back order
       b.rnd = Array.from({ length: 12 }, r);
       b.grow = BUD_START + r() * 1.2;
-      if (rank < 10) {
-        b.maxOpen = 1; b.blush = 1; b.openAt = OPEN_START + rank * OPEN_GAP + r() * 0.3;
-      } else if (rank < 15) {
+      if (openRank.has(idx)) {
+        b.maxOpen = 1; b.blush = 1; b.openAt = OPEN_START + openRank.get(idx) * OPEN_GAP + r() * 0.3;
+      } else if (blush.has(idx)) {
         b.maxOpen = 0.08; b.blush = 0.8; b.openAt = OPEN_START + 2 + r() * 4;
       } else {
         b.maxOpen = 0; b.blush = 0.1 + r() * 0.2; b.openAt = Infinity; b.len *= 0.75;
@@ -456,7 +471,7 @@
   // built from the same glyphs on the same grid, so they stay crisp at any size.
   const LOVE_NAME = 'Maria';
   const LOVE_TEXT = `Te amo ${LOVE_NAME}`;
-  const LOVE_START = 14.3;                       // just after the last lily opens
+  const LOVE_START = 14.2;                       // just after the last lily opens
   const LOVE_TOP = 961;                          // world y of the caption's top row
   const LOVE_ROWS = 7;
 
@@ -577,8 +592,8 @@
     drawGyp(g, S, false);
     for (const st of S.stems) strokeCurve(g, st.pts, 0, stemProgress(st), 9, '#5a9a30');
     for (const lf of S.leaves) drawLeaf(g, lf);
-    // closed buds behind, then open flowers in the order they opened
-    const sorted = S.buds.slice().sort((a, b) => budState(a).open - budState(b).open || (a.openAt - b.openAt || 0));
+    // fixed depth order: buds and flowers that open never swap in front of each other
+    const sorted = S.buds.slice().sort((a, b) => a.depth - b.depth);
     for (const b of sorted) drawBud(g, b, pal);
     drawGyp(g, S, true);
     if (showNote) drawHeart(g);
