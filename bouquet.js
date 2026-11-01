@@ -16,9 +16,9 @@
   const FPS = 30;
 
   const PALETTES = [
-    { // pink lilies, like the photos
-      petal: '#f39ab2', edge: '#f9c3d2', blush: '#d99aa6', throat: '#c9dc78', vein: 'rgba(170,40,80,0.45)',
-      anther: '#4a1d10', spots: true,
+    { // cherry red and ivory lilies
+      petal: ['#cf112f', '#f7f0e2', '#b00d24', '#fcf8ef', '#d81a34', '#efe4cf'], edge: null,
+      blush: '#dda6a8', throat: '#e6cf74', vein: 'rgba(90,8,22,0.45)', anther: '#3a160a', spots: true,
     },
     { // white oriental lilies
       petal: '#f6f2ea', edge: '#ffffff', blush: '#d8dcc0', throat: '#c8d87a', vein: 'rgba(120,130,90,0.4)',
@@ -85,7 +85,7 @@
   const LEAF_START = 1.0;
   const BUD_START = 2.2;
   const BLUSH_START = 3.6;
-  const OPEN_START = 5.0, OPEN_GAP = 0.85, OPEN_DUR = 3.2;
+  const OPEN_START = 5.0, OPEN_GAP = 0.62, OPEN_DUR = 3.2;
 
   function buildScene() {
     const r = rng(11);
@@ -93,8 +93,9 @@
 
     // [top x, top y, side pedicels]
     const tops = [
-      [310, 470, 2], [395, 360, 2], [500, 300, 3], [600, 350, 2],
-      [700, 420, 2], [740, 500, 1], [350, 560, 1], [650, 560, 1],
+      [255, 505, 1], [310, 470, 2], [395, 360, 2], [455, 258, 2], [500, 300, 3],
+      [560, 252, 1], [600, 350, 2], [700, 420, 2], [740, 500, 1], [775, 530, 1],
+      [350, 560, 1], [650, 560, 1],
     ];
     for (const [tx, ty, sides] of tops) {
       const bx = 485 + r() * 30;
@@ -140,9 +141,9 @@
       b.colorIdx = rank;
       b.rnd = Array.from({ length: 12 }, r);
       b.grow = BUD_START + r() * 1.2;
-      if (rank < 7) {
+      if (rank < 10) {
         b.maxOpen = 1; b.blush = 1; b.openAt = OPEN_START + rank * OPEN_GAP + r() * 0.3;
-      } else if (rank < 11) {
+      } else if (rank < 15) {
         b.maxOpen = 0.08; b.blush = 0.8; b.openAt = OPEN_START + 2 + r() * 4;
       } else {
         b.maxOpen = 0; b.blush = 0.1 + r() * 0.2; b.openAt = Infinity; b.len *= 0.75;
@@ -194,6 +195,7 @@
     const clouds = [
       [340, 460], [660, 430], [500, 330], [280, 610], [740, 610],
       [450, 610], [590, 640], [400, 340], [620, 340], [520, 520],
+      [330, 300], [675, 295], [250, 400], [760, 390],
     ];
     clouds.forEach(([cx, cy], ci) => {
       const base = [485 + r() * 30, 1000 + r() * 60];
@@ -453,20 +455,21 @@
   // vector shape like the flowers, so it too becomes ascii; the letters are
   // built from the same glyphs on the same grid, so they stay crisp at any size.
   const LOVE_NAME = 'Maria';
-  const LOVE_TEXT = `te amo ${LOVE_NAME}`;
-  const LOVE_START = 13.0;                       // just after the last lily opens
+  const LOVE_TEXT = `Te amo ${LOVE_NAME}`;
+  const LOVE_START = 14.3;                       // just after the last lily opens
   const LOVE_TOP = 961;                          // world y of the caption's top row
   const LOVE_ROWS = 7;
 
   // 5x7 block letters, one lit pixel per character cell
   const LOVE_GLYPHS = {
     ' ': ['00000', '00000', '00000', '00000', '00000', '00000', '00000'],
+    T: ['11111', '00100', '00100', '00100', '00100', '00100', '00000'],
     t: ['00000', '00100', '01111', '00100', '00100', '01100', '00010'],
     e: ['00000', '01110', '10001', '11111', '10000', '01110', '00000'],
     a: ['00000', '01110', '00001', '01111', '10001', '01111', '00000'],
     m: ['00000', '11011', '10101', '10101', '10101', '10101', '00000'],
     o: ['00000', '01110', '10001', '10001', '10001', '01110', '00000'],
-    M: ['00000', '10001', '11011', '10101', '10001', '10001', '00000'],
+    M: ['10001', '11011', '10101', '10001', '10001', '10001', '00000'],
     r: ['00000', '10110', '11001', '10000', '10000', '10000', '00000'],
     i: ['00100', '00000', '01100', '00100', '00100', '01110', '00000'],
   };
