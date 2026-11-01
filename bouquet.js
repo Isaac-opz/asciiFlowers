@@ -5,10 +5,12 @@
 // The bloom follows how cut lilies actually open: a bunch of tall leafy stems,
 // each ending in a cluster of long green buds. Buds swell and blush, then split
 // into six tepals that curl back to show the stamens. Some buds stay green.
+// Once the last lily is open, a red heart and a message arrive below them.
 (() => {
   'use strict';
 
   const RAMP = ' .:-=+*cxoaX#%&@';
+  const MONO = 'Menlo, Consolas, "DejaVu Sans Mono", monospace';
   const WORLD_W = 1000;
   const WORLD_H = 1100;
   const FPS = 30;
@@ -42,6 +44,7 @@
   const prog = (T, start, dur) => clamp((T - start) / dur, 0, 1);
   const easeOut = (t) => 1 - Math.pow(1 - t, 3);
   const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  const easeOutBack = (t) => { const c = 1.70158, u = t - 1; return 1 + (c + 1) * u * u * u + c * u * u; };
   const smooth = (a, b, t) => { const x = clamp((t - a) / (b - a), 0, 1); return x * x * (3 - 2 * x); };
   const rad = (d) => (d * Math.PI) / 180;
 
@@ -445,6 +448,127 @@
     }
   }
 
+  // ---------- the love note ----------
+  // A red heart, then the message typed out in block letters. The heart is a
+  // vector shape like the flowers, so it too becomes ascii; the letters are
+  // built from the same glyphs on the same grid, so they stay crisp at any size.
+  const LOVE_NAME = 'Maria';
+  const LOVE_TEXT = `te amo ${LOVE_NAME}`;
+  const LOVE_START = 13.0;                       // just after the last lily opens
+  const LOVE_TOP = 961;                          // world y of the caption's top row
+  const LOVE_ROWS = 7;
+
+  // 5x7 block letters, one lit pixel per character cell
+  const LOVE_GLYPHS = {
+    ' ': ['00000', '00000', '00000', '00000', '00000', '00000', '00000'],
+    t: ['00000', '00100', '01111', '00100', '00100', '01100', '00010'],
+    e: ['00000', '01110', '10001', '11111', '10000', '01110', '00000'],
+    a: ['00000', '01110', '00001', '01111', '10001', '01111', '00000'],
+    m: ['00000', '11011', '10101', '10101', '10101', '10101', '00000'],
+    o: ['00000', '01110', '10001', '10001', '10001', '01110', '00000'],
+    M: ['00000', '10001', '11011', '10101', '10001', '10001', '00000'],
+    r: ['00000', '10110', '11001', '10000', '10000', '10000', '00000'],
+    i: ['00100', '00000', '01100', '00100', '00100', '01110', '00000'],
+  };
+
+  // flatten the message into the cells that carry a glyph, left to right
+  const LOVE_ART = (() => {
+    const cells = [];
+    let x = 0;
+    for (const ch of LOVE_TEXT) {
+      const glyph = LOVE_GLYPHS[ch];
+      if (!glyph && ch !== ' ') console.warn(`ascii lilies: no 5x7 glyph for "${ch}"`);
+      const rows = glyph || LOVE_GLYPHS[' '];
+      for (let row = 0; row < LOVE_ROWS; row++) {
+        for (let col = 0; col < 5; col++) {
+          if (rows[row][col] === '1') cells.push([x + col, row]);
+        }
+      }
+      x += ch === ' ' ? 4 : 6;
+    }
+    return { cells, w: x - 1 };
+  })();
+
+  // a soft double thump, one beat every ~1.7 s
+  function heartbeat(t) {
+    const p = (t * 0.6) % 1;
+    return Math.exp(-Math.pow(p * 7, 2)) + 0.55 * Math.exp(-Math.pow((p - 0.22) * 9, 2));
+  }
+
+  // wide notch, round lobes, sharp tip
+  function heartPath(g, s) {
+    g.beginPath();
+    g.moveTo(0, s);
+    g.bezierCurveTo(-0.27 * s, 0.7 * s, -s, 0.45 * s, -s, 0.03 * s);
+    g.bezierCurveTo(-s, -0.44 * s, -0.72 * s, -0.8 * s, -0.4 * s, -0.8 * s);
+    g.lineTo(-0.05 * s, -0.36 * s);
+    g.quadraticCurveTo(0, -0.3 * s, 0.05 * s, -0.36 * s);
+    g.lineTo(0.4 * s, -0.8 * s);
+    g.bezierCurveTo(0.72 * s, -0.8 * s, s, -0.44 * s, s, 0.03 * s);
+    g.bezierCurveTo(s, 0.45 * s, 0.27 * s, 0.7 * s, 0, s);
+    g.closePath();
+  }
+
+  function drawHeart(g) {
+    const pop = easeOutBack(prog(T, LOVE_START, 0.9));
+    if (!pop) return;
+    const beat = 1 + 0.04 * heartbeat(T - LOVE_START);
+    const s = 134 * pop * beat;
+    if (s < 2) return;
+
+    const [x, y] = sway(500, 786);
+    g.save();
+    g.translate(x, y);
+    // a dark ring first, so the red silhouette stays clean over the greenery
+    heartPath(g, s);
+    g.strokeStyle = 'rgba(0,0,0,0.92)';
+    g.lineWidth = 18;
+    g.stroke();
+    heartPath(g, s);
+    // flat, saturated red reads best once it is quantised into glyphs
+    const grad = g.createLinearGradient(0, -0.8 * s, 0, s);
+    grad.addColorStop(0, '#f4163d');
+    grad.addColorStop(0.6, '#e60c33');
+    grad.addColorStop(1, '#bb0029');
+    g.fillStyle = grad;
+    g.fill();
+    // one small glint on the left lobe
+    g.fillStyle = 'rgba(255,245,248,0.92)';
+    g.beginPath();
+    g.arc(-0.5 * s, -0.5 * s, 0.085 * s, 0, Math.PI * 2);
+    g.fill();
+    g.restore();
+  }
+
+  // screen-space pass: real glyphs on the cell grid, typed in column by column
+  function drawNote(sctx) {
+    const typed = prog(T, LOVE_START + 0.6, 1.8);
+    if (!typed) return;
+    const x0 = Math.round(view.ox + 500 * view.sx - LOVE_ART.w / 2);
+    const y0 = Math.round(view.oy + LOVE_TOP * view.sy);
+    const shown = Math.floor(typed * (LOVE_ART.w + 0.5));
+
+    // knock the bouquet out from under each letter cell so the words stay clean
+    sctx.fillStyle = '#000';
+    for (const [cx, cy] of LOVE_ART.cells) {
+      if (cx < shown) sctx.fillRect((x0 + cx) * cellW, (y0 + cy) * cellH, cellW + 0.5, cellH + 0.5);
+    }
+    const grad = sctx.createLinearGradient(x0 * cellW, 0, (x0 + LOVE_ART.w) * cellW, 0);
+    grad.addColorStop(0, '#fff6f2');
+    grad.addColorStop(0.5, '#ffc2d0');
+    grad.addColorStop(1, '#ff2d55');
+    sctx.save();
+    sctx.font = `bold ${fontSize}px ${MONO}`;
+    sctx.textBaseline = 'top';
+    sctx.fillStyle = grad;
+    sctx.shadowColor = 'rgba(255,50,90,0.55)';
+    sctx.shadowBlur = fontSize * 0.8;
+    for (const [cx, cy] of LOVE_ART.cells) {
+      if (cx < shown) sctx.fillText('@', (x0 + cx) * cellW, (y0 + cy) * cellH);
+    }
+    sctx.restore();
+  }
+
   function drawScene(g, S, pal) {
     drawRuscus(g, S);
     drawGyp(g, S, false);
@@ -454,6 +578,7 @@
     const sorted = S.buds.slice().sort((a, b) => budState(a).open - budState(b).open || (a.openAt - b.openAt || 0));
     for (const b of sorted) drawBud(g, b, pal);
     drawGyp(g, S, true);
+    if (showNote) drawHeart(g);
   }
 
   // ---------- ascii renderer ----------
@@ -463,6 +588,7 @@
   const octx = off.getContext('2d', { willReadFrequently: true });
 
   let cols = 0, rows = 0, cellW = 0, cellH = 0, fontSize = 0, dpr = 1;
+  const view = { ox: 0, oy: 0, sx: 1, sy: 1 };   // world → cell projection, for the note
   const styleCache = new Map();
   function style(r, g, b) {
     const key = (r << 16) | (g << 8) | b;
@@ -475,7 +601,7 @@
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = window.innerWidth, h = window.innerHeight;
     fontSize = clamp(Math.floor(Math.min(w / 100, h / 85)), 5, 11);
-    sctx.font = `bold ${fontSize}px Menlo, Consolas, "DejaVu Sans Mono", monospace`;
+    sctx.font = `bold ${fontSize}px ${MONO}`;
     cellW = sctx.measureText('M').width || fontSize * 0.6;
     cellH = fontSize;
     screen.width = Math.floor(w * dpr);
@@ -490,10 +616,14 @@
     // paint the scene into the low-res buffer, correcting for tall character cells
     const aspect = cellH / cellW;
     const sx = Math.min(cols / WORLD_W, (rows * aspect) / WORLD_H) * 0.96;
+    view.sx = sx;
+    view.sy = sx / aspect;
+    view.ox = (cols - WORLD_W * sx) / 2;
+    view.oy = (rows - WORLD_H * view.sy) / 2;
     octx.setTransform(1, 0, 0, 1, 0, 0);
     octx.fillStyle = '#000';
     octx.fillRect(0, 0, cols, rows);
-    octx.setTransform(sx, 0, 0, sx / aspect, (cols - WORLD_W * sx) / 2, (rows - (WORLD_H * sx) / aspect) / 2);
+    octx.setTransform(sx, 0, 0, view.sy, view.ox, view.oy);
 
     drawScene(octx, S, pal);
 
@@ -527,11 +657,13 @@
         sctx.fillText(RAMP[idx], x * cellW, y * cellH);
       }
     }
+    if (showNote) drawNote(sctx);
   }
 
   // ---------- loop ----------
   const S = buildScene();
   let palette = 0;
+  let showNote = true;
   let t0 = performance.now();
   let last = 0;
 
@@ -551,10 +683,11 @@
     if (e.key === 'p' || e.key === 'c') { palette = (palette + 1) % PALETTES.length; replay(); }
   });
 
-  // ?t=8 starts 8s into the bloom, ?p=1 picks a palette
+  // ?t=8 starts 8s into the bloom, ?p=1 picks a palette, ?m=0 hides the note
   const q = new URLSearchParams(location.search);
   if (q.has('p')) palette = clamp(+q.get('p') | 0, 0, PALETTES.length - 1);
   if (q.has('t')) t0 = performance.now() - +q.get('t') * 1000;
+  if (q.get('m') === '0') showNote = false;
 
   resize();
   requestAnimationFrame(frame);

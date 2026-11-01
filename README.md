@@ -14,7 +14,9 @@ It follows how cut lilies open over a few days, sped up to about 15 seconds:
 4. One by one the buds split into six tepals that open into a star, curl back at the tips and show long stamens with dark anthers.
 5. A few buds stay green or only blush, like a real bunch.
 
-After that it keeps swaying gently.
+After that it keeps swaying gently. Once the last lily is open, a red heart
+pops in over the stems, beats softly, and the message `te amo Maria` is typed
+out below in 5×7 block letters.
 
 ## Controls
 
@@ -24,7 +26,16 @@ After that it keeps swaying gently.
 ## URL options
 
 - `?p=1` picks the starting colours (0, 1 or 2)
-- `?t=8` starts 8 seconds into the bloom
+- `?t=8` starts 8 seconds into the bloom (`?t=14` jumps to the note)
+- `?m=0` hides the heart and the message
+
+## The message
+
+The name lives in `LOVE_NAME` near the top of the note section in `bouquet.js`.
+The letters are 5×7 block glyphs, one lit pixel per character cell, so they are
+drawn from the same characters as the flowers and stay readable instead of
+turning to mush at that resolution. The heart is an ordinary vector shape, so
+it goes through the same ascii pipeline as everything else.
 
 ## How it works
 
