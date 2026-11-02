@@ -12,7 +12,7 @@ It follows how cut lilies open over a few days, sped up to about 16 seconds:
 
 1. Tall stems rise from a gathered bunch and lance-shaped leaves unfurl along them. Arching sprigs of ruscus fan out around them, with glossy leaves alternating up each sprig.
 2. Each stem ends in a cluster of long green buds on short side stalks, which swell.
-3. Mature buds blush from green to dusty pink while baby's breath branches through the bunch and bursts into clouds of tiny white flowers.
+3. Baby's breath branches through the bunch and bursts into clouds of tiny white flowers while the buds keep swelling.
 4. One by one the buds split into six tepals that open into a star, curl back at the tips and show long stamens with dark anthers.
 5. A few buds stay green or only blush, like a real bunch.
 
@@ -23,7 +23,7 @@ out below in 5×7 block letters.
 ## Controls
 
 - **Click, Space or `R`**: replay the bloom
-- **`P`**: switch colours (cherry & ivory → white → mixed garden)
+- **`P`**: switch colours (cherry red → white → mixed garden)
 
 ## URL options
 

@@ -16,9 +16,9 @@
   const FPS = 30;
 
   const PALETTES = [
-    { // cherry red and ivory lilies
-      petal: ['#cf112f', '#e7dbc3', '#b00d24', '#f1e6d4', '#d81a34', '#ddcfb4'], edge: null,
-      blush: '#dda6a8', throat: '#e6cf74', vein: 'rgba(80,6,18,0.5)', anther: '#3a160a', spots: true,
+    { // cherry red lilies, with the white baby's breath as the contrast
+      petal: ['#f0103c', '#c00d2b', '#ff3b5c', '#d81a34'], edge: '#ffb0c0',
+      blush: '#c46a72', throat: '#cfd87e', vein: 'rgba(70,4,14,0.5)', anther: '#3a160a', spots: true,
     },
     { // white oriental lilies
       petal: '#f6f2ea', edge: '#ffffff', blush: '#d8dcc0', throat: '#c8d87a', vein: 'rgba(120,130,90,0.4)',
@@ -85,16 +85,16 @@
   const LEAF_START = 1.0;
   const BUD_START = 2.2;
   const BLUSH_START = 3.6;
-  const OPEN_START = 5.0, OPEN_GAP = 0.7, OPEN_DUR = 3.0;
+  const OPEN_START = 5.0, OPEN_GAP = 1.0, OPEN_DUR = 3.2;
 
   function buildScene() {
     const r = rng(11);
     const S = { stems: [], leaves: [], buds: [] };
 
-    // [top x, top y, side pedicels] — left to right, so the colours alternate
+    // [top x, top y, side pedicels] — a wide fan, left to right
     const tops = [
-      [235, 530, 1], [310, 470, 2], [350, 560, 1], [395, 360, 2], [500, 300, 3],
-      [600, 350, 2], [650, 560, 1], [700, 420, 2], [740, 500, 1], [800, 545, 1],
+      [160, 560, 1], [230, 440, 1], [300, 350, 1], [390, 285, 2], [500, 265, 3],
+      [610, 285, 2], [700, 350, 1], [770, 440, 1], [840, 560, 1],
     ];
     tops.forEach(([tx, ty, sides], ti) => {
       const bx = 485 + r() * 30;
@@ -128,40 +128,37 @@
       }
     });
 
-    // decide each bud's fate: a third open fully, a few only blush, the rest stay green.
-    // Opens are spread over different stems so no two full lilies sit on top of each other.
-    const order = S.buds.map((_, i) => i).sort(() => r() - 0.5);
-    const opens = [];
-    const blush = new Set();
-    const openStems = new Set();
-    for (const idx of order) {
-      const stemRef = S.buds[idx].stemRef;
-      if (opens.length < 9) {
-        if (openStems.has(stemRef)) continue;
-        openStems.add(stemRef);
-        opens.push(idx);
-      } else if (blush.size < 5) {
-        blush.add(idx);
-      }
-    }
+    // one tip flower opens on every other stem, so the five blooms stay evenly spread
+    const tips = S.stems.map((st) => S.buds.findIndex((b) => b.stemRef === st && b.ped === null));
+    const opens = tips.filter((_, i) => i % 2 === 0);
     const openRank = new Map(opens.map((idx, i) => [idx, i]));
-    order.forEach((idx, rank) => {
+
+    // a few side buds blush but stay closed; the rest stay green
+    const order = S.buds.map((_, i) => i).sort(() => r() - 0.5);
+    const blush = new Set();
+    for (const idx of order) {
+      if (blush.size >= 5) break;
+      if (!openRank.has(idx)) blush.add(idx);
+    }
+
+    order.forEach((idx) => {
       const b = S.buds[idx];
-      b.len = 120 + r() * 40;
-      b.width = 19 + r() * 5;
+      b.len = 112 + r() * 34;
+      b.width = 25 + r() * 6;
       b.squash = 0.6 + r() * 0.25;
       b.twist = (r() - 0.5) * 0.8;
-      b.droop = rad((b.dir > rad(-90) ? 1 : -1) * (15 + r() * 20));
+      b.droop = rad((b.dir > rad(-90) ? 1 : -1) * (12 + r() * 16));
       b.colorIdx = b.stemRef.tint;                 // one cultivar per stem: red, white, red…
+      b.blushCol = b.stemRef.tint % 2 ? '#e7b4b6' : '#dd8f98';   // buds blush rose, never beige
       b.depth = b.ped ? b.ped[3][1] : bez(b.stem, 1)[1];   // stable front-to-back order
       b.rnd = Array.from({ length: 12 }, r);
       b.grow = BUD_START + r() * 1.2;
       if (openRank.has(idx)) {
-        b.maxOpen = 1; b.blush = 1; b.openAt = OPEN_START + openRank.get(idx) * OPEN_GAP + r() * 0.3;
+        b.maxOpen = 1; b.blush = 0.28; b.openAt = OPEN_START + openRank.get(idx) * OPEN_GAP + r() * 0.3;
       } else if (blush.has(idx)) {
-        b.maxOpen = 0.08; b.blush = 0.8; b.openAt = OPEN_START + 2 + r() * 4;
+        b.maxOpen = 0.08; b.blush = 0.4; b.openAt = OPEN_START + 2 + r() * 4;
       } else {
-        b.maxOpen = 0; b.blush = 0.1 + r() * 0.2; b.openAt = Infinity; b.len *= 0.75;
+        b.maxOpen = 0; b.blush = 0.12 + r() * 0.15; b.openAt = Infinity; b.len *= 0.75;
       }
     });
     addFillers(S);
@@ -350,9 +347,9 @@
     const edge = pal.edge || mix(petal, '#ffffff', 0.25);
 
     // bud colour: green → dusty pink as it matures → petal colour as it opens
-    const budCol = mix('#9cc63e', pal.blush, blush);
+    const budCol = mix('#9cc63e', b.blushCol || pal.blush, blush);
     const color = mix(budCol, petal, smooth(0.05, 0.45, open));
-    const edgeCol = mix(mix('#b4d860', pal.blush, blush), edge, smooth(0.05, 0.45, open));
+    const edgeCol = mix(mix('#b4d860', b.blushCol || pal.blush, blush), edge, smooth(0.05, 0.45, open));
     const throat = mix('#8fbf3a', pal.throat, open);
 
     const L = b.len * (0.3 + 0.7 * grow) * (1 + 0.3 * open);
@@ -361,7 +358,7 @@
     g.save();
     g.translate(x, y);
     g.rotate(b.dir + b.droop * open);
-    g.scale(1, lerp(1, b.squash, open));
+    g.scale(1, lerp(1, b.squash, open * 0.45));
     // short green receptacle where the bud meets the pedicel
     g.fillStyle = '#5f9a34';
     g.beginPath(); g.ellipse(0, 0, 9, 7, 0, 0, Math.PI * 2); g.fill();
@@ -471,7 +468,7 @@
   // built from the same glyphs on the same grid, so they stay crisp at any size.
   const LOVE_NAME = 'Maria';
   const LOVE_TEXT = `Te amo ${LOVE_NAME}`;
-  const LOVE_START = 14.2;                       // just after the last lily opens
+  const LOVE_START = 13.2;                       // just after the last lily opens
   const LOVE_TOP = 961;                          // world y of the caption's top row
   const LOVE_ROWS = 7;
 
@@ -531,7 +528,7 @@
     const pop = easeOutBack(prog(T, LOVE_START, 0.9));
     if (!pop) return;
     const beat = 1 + 0.04 * heartbeat(T - LOVE_START);
-    const s = 134 * pop * beat;
+    const s = 104 * pop * beat;
     if (s < 2) return;
 
     const [x, y] = sway(500, 786);
