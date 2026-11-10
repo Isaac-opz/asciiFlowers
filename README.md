@@ -14,7 +14,7 @@ It opens on a night sky. A line types itself out like a terminal,
 `> Maria, tengo algo para ti`, and an envelope floats up, sealed with a beating
 red heart. Tapping it (or pressing Space or Enter) breaks the seal, swings the flap
 open and lets out a warm light that sinks into the bouquet's wrap, and the bloom
-begins. The tap also starts a little music box: an original waltz synthesised in
+begins. The tap also starts a quiet lullaby: slow, original arpeggios synthesised in
 the browser with WebAudio, so there are no audio files. Browsers only allow sound
 after a tap, which is why the letter comes first.
 
@@ -33,8 +33,7 @@ A hand-tied florist's bouquet, mirrored left to right, sped up to about 12 secon
 
 After that it keeps swaying gently. Once the last lily is open, a red heart
 pops in on the wrap, beats softly, and the message `Te amo Maria` is written
-out below in a glowing script, left to right like ink, followed by a smaller
-`Eres mi prioridad`.
+out below in a glowing script, left to right like ink.
 
 ## Controls
 
@@ -52,9 +51,7 @@ out below in a glowing script, left to right like ink, followed by a smaller
 
 ## The message
 
-The name lives in `LOVE_NAME` and the second line in `LOVE_SUB`, both in the love
-note section of `bouquet.js`. The second line uses Dancing Script, whose letters
-stay legible at the smaller size. The
+The name lives in `LOVE_NAME` in the love note section of `bouquet.js`. The
 words are set in Great Vibes (from Google Fonts, falling back to Snell Roundhand
 or Segoe Script) as real type over the ascii: a flowing hand loses its hairlines
 at character resolution, so it is the one thing not turned into glyphs. The heart

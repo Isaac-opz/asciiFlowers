@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500&family=Great+Vibes&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
 <title>ASCII Lilies &amp; Roses</title>
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
@@ -13,7 +13,7 @@
   #glow { opacity: 0.45; pointer-events: none; image-rendering: auto; }
   #screen { width: 100vw; height: 100vh; cursor: pointer; }
   /* the love note: real script type over the ascii, written in left to right */
-  #note, #note-sub {
+  #note {
     position: fixed; transform: translate(-50%, -50%); margin: 0; padding: 0.1em 0.7em;
     white-space: nowrap; line-height: 1.3; pointer-events: none; visibility: hidden;
     font-family: "Great Vibes", "Snell Roundhand", "Segoe Script", cursive; font-weight: 400;
@@ -37,9 +37,8 @@
   #intro.gone, #hint.gone { opacity: 0; animation: none; }
   @keyframes blink { 50% { opacity: 0; } }
   @keyframes breathe { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
-  #note-sub { font-family: "Dancing Script", "Snell Roundhand", cursive; font-weight: 500; }
-  #note.done, #note-sub.done { -webkit-mask-image: none; mask-image: none; }
-  #note span, #note-sub span {
+  #note.done { -webkit-mask-image: none; mask-image: none; }
+  #note span {
     background: linear-gradient(90deg, #fff4ef 0%, #ffc9d6 45%, #ff3b62 100%);
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
@@ -49,7 +48,6 @@
 <canvas id="glow"></canvas>
 <canvas id="screen"></canvas>
 <p id="note"><span></span></p>
-<p id="note-sub"><span></span></p>
 <p id="intro"><span class="typed"></span><span class="cursor">_</span></p>
 <p id="hint" class="gone">toca para abrir</p>
 <script src="bouquet.js"></script>
