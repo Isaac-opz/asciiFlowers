@@ -787,9 +787,9 @@
     const px = (wx, wy) => [(view.ox + wx * view.sx) * cellW, (view.oy + wy * view.sy) * cellH];
     const size = clamp(WORLD_W * view.sx * cellW * 0.034, 14, 30);
     const [lx, ly] = px(500, 390);
-    introEl.style.cssText = `left:${lx}px;top:${ly}px;font-size:${size.toFixed(1)}px`;
+    introEl.style.cssText = `left:${lx}px;top:${ly}px;font-size:${size.toFixed(1)}px;visibility:visible`;
     const [hx, hy] = px(500, 860);
-    hintEl.style.cssText = `left:${hx}px;top:${hy}px;font-size:${(size * 0.72).toFixed(1)}px`;
+    hintEl.style.cssText = `left:${hx}px;top:${hy}px;font-size:${(size * 0.72).toFixed(1)}px;visibility:visible`;
   }
 
   // ---------- music box ----------
