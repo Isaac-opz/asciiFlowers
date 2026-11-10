@@ -3,14 +3,55 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ASCII Lilies</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500&family=Great+Vibes&display=swap" rel="stylesheet">
+<title>ASCII Lilies &amp; Roses</title>
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
-  canvas { display: block; width: 100vw; height: 100vh; cursor: pointer; }
+  canvas { position: fixed; top: 0; left: 0; display: block; }
+  #glow { opacity: 0.45; pointer-events: none; image-rendering: auto; }
+  #screen { width: 100vw; height: 100vh; cursor: pointer; }
+  /* the love note: real script type over the ascii, written in left to right */
+  #note, #note-sub {
+    position: fixed; transform: translate(-50%, -50%); margin: 0; padding: 0.1em 0.7em;
+    white-space: nowrap; line-height: 1.3; pointer-events: none; visibility: hidden;
+    font-family: "Great Vibes", "Snell Roundhand", "Segoe Script", cursive; font-weight: 400;
+    filter: drop-shadow(0 0 0.05em rgba(255, 70, 110, 0.9)) drop-shadow(0 0 0.22em rgba(255, 40, 90, 0.45));
+    --ink: 0%;
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(var(--ink) - 12%), transparent var(--ink));
+    mask-image: linear-gradient(90deg, #000 calc(var(--ink) - 12%), transparent var(--ink));
+  }
+  /* the prelude: a typed terminal line and a pulsing hint, crisp over the ascii */
+  #intro, #hint {
+    position: fixed; transform: translate(-50%, -50%); margin: 0; white-space: nowrap;
+    pointer-events: none; font-family: Menlo, Consolas, "DejaVu Sans Mono", monospace;
+    transition: opacity 0.7s ease;
+  }
+  #intro { color: #ffe6ec; text-shadow: 0 0 0.35em rgba(255, 90, 130, 0.65); }
+  #intro .cursor { animation: blink 1.05s steps(1) infinite; }
+  #hint {
+    color: #d9b3bd; letter-spacing: 0.3em; text-transform: lowercase;
+    text-shadow: 0 0 0.4em rgba(255, 120, 150, 0.5); animation: breathe 2.4s ease-in-out infinite;
+  }
+  #intro.gone, #hint.gone { opacity: 0; animation: none; }
+  @keyframes blink { 50% { opacity: 0; } }
+  @keyframes breathe { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+  #note-sub { font-family: "Dancing Script", "Snell Roundhand", cursive; font-weight: 500; }
+  #note.done, #note-sub.done { -webkit-mask-image: none; mask-image: none; }
+  #note span, #note-sub span {
+    background: linear-gradient(90deg, #fff4ef 0%, #ffc9d6 45%, #ff3b62 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
 </style>
 </head>
 <body>
+<canvas id="glow"></canvas>
 <canvas id="screen"></canvas>
+<p id="note"><span></span></p>
+<p id="note-sub"><span></span></p>
+<p id="intro"><span class="typed"></span><span class="cursor">_</span></p>
+<p id="hint" class="gone">toca para abrir</p>
 <script src="bouquet.js"></script>
 </body>
 </html>
