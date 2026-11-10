@@ -14,7 +14,7 @@
   const RAMP = ' .:-=+*cxoaX#%&@';
   const MONO = 'Menlo, Consolas, "DejaVu Sans Mono", monospace';
   const WORLD_W = 1000;
-  const WORLD_H = 1240;
+  const WORLD_H = 1220;
   const FPS = 60;
 
   const PALETTES = [
@@ -531,16 +531,12 @@
   const LOVE_NAME = 'Maria';
   const LOVE_TEXT = `Te amo ${LOVE_NAME}`;
   const LOVE_START = 13.2;                       // just after the last lily opens
-  const LOVE_TOP = 1095;                         // world y of the caption's centre line
+  const LOVE_TOP = 1125;                         // world y of the caption's centre line
   const LOVE_FONT = '"Great Vibes", "Snell Roundhand", "Segoe Script", cursive';
   const LOVE_WIDTH = 0.66;                       // caption width, as a share of the bouquet's
-  const LOVE_SUB = 'Eres mi prioridad';          // the second, smaller line (Dancing Script, for legibility)
-  const LOVE_SUB_GAP = 92;                       // world units from the caption to the line below
 
-  // each line writes itself in after the one above: [element, text, start, duration]
   const NOTES = [
     { el: document.getElementById('note'), text: LOVE_TEXT, start: LOVE_START + 0.6, dur: 2.4 },
-    { el: document.getElementById('note-sub'), text: LOVE_SUB, start: LOVE_START + 3.1, dur: 1.9 },
   ];
   for (const n of NOTES) n.el.firstElementChild.textContent = n.text;
   let noteFit = 0;                               // font px per px of caption width
@@ -556,13 +552,13 @@
     const relayout = key !== noteKey;            // layout only changes on resize or font load
     noteKey = key;
     const size = WORLD_W * view.sx * LOVE_WIDTH * cellW * noteFit;
-    NOTES.forEach((n, i) => {
+    NOTES.forEach((n) => {
       const written = showNote ? prog(T, n.start, n.dur) : 0;
       n.el.style.visibility = written ? 'visible' : 'hidden';
       if (relayout) {
-        n.el.style.fontSize = `${(size * (i ? 0.4 : 1)).toFixed(1)}px`;
+        n.el.style.fontSize = `${size.toFixed(1)}px`;
         n.el.style.left = `${((view.ox + 500 * view.sx) * cellW).toFixed(1)}px`;
-        n.el.style.top = `${((view.oy + (LOVE_TOP + i * LOVE_SUB_GAP) * view.sy) * cellH).toFixed(1)}px`;
+        n.el.style.top = `${((view.oy + LOVE_TOP * view.sy) * cellH).toFixed(1)}px`;
       }
       if (!written) return;
       // once the ink is down, drop the mask so the glow composites cleanly
@@ -797,24 +793,22 @@
   }
 
   // ---------- music box ----------
-  // An original little waltz, synthesised: each note is a pure tone with a bright,
-  // quickly fading overtone (the plucked steel tine), over a soft hall reverb.
+  // A slow, quiet lullaby, synthesised: unhurried arpeggios over C, Am, F and G in a
+  // low, warm register, one soft note at a time, each left to ring out in a hall.
   const Music = (() => {
-    let ac = null, master = null, bus = null, on = true, level = 0.16;
+    let ac = null, master = null, bus = null, on = true, level = 0.11;
     let step = 0, next = 0, timer = 0;
-    const EIGHTH = 60 / 84 / 2;
-    // melody in MIDI note numbers, six eighths to a bar; 0 is a rest
+    const STEP = 0.92;                           // seconds between notes
+    // four notes per chord, rising then settling; 0 is a rest
     const TUNE = [
-      76, 79, 84, 83, 79, 76,   77, 81, 86, 84, 81, 77,
-      76, 79, 84, 88, 86, 84,   83, 79, 86, 83, 79, 0,
-      72, 76, 81, 79, 76, 72,   74, 77, 83, 81, 77, 74,
-      76, 79, 84, 83, 81, 79,   84, 0, 79, 0, 76, 0,
+      60, 64, 67, 64,   57, 60, 64, 60,   53, 57, 60, 57,   55, 59, 62, 0,
+      60, 64, 67, 72,   57, 60, 64, 69,   53, 57, 60, 65,   55, 59, 67, 0,
     ];
-    const BASS = [48, 53, 48, 55, 57, 50, 53, 48];   // one per bar, on the downbeat
+    const BASS = [48, 45, 41, 43];               // one per chord, under its first note
     const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
 
     function reverb() {
-      const len = ac.sampleRate * 2.6;
+      const len = ac.sampleRate * 3.4;
       const buf = ac.createBuffer(2, len, ac.sampleRate);
       for (let ch = 0; ch < 2; ch++) {
         const d = buf.getChannelData(ch);
@@ -827,13 +821,13 @@
 
     function pluck(m, t, vel) {
       const f = hz(m);
-      for (const [mul, amp, decay] of [[1, 1, 1.9], [4.02, 0.22, 0.35], [2, 0.12, 0.8]]) {
+      for (const [mul, amp, decay] of [[1, 1, 2.8], [2, 0.07, 1.2]]) {   // warm: no bright overtone
         const o = ac.createOscillator();
         const g = ac.createGain();
         o.type = 'sine';
         o.frequency.value = f * mul;
         g.gain.setValueAtTime(0, t);
-        g.gain.linearRampToValueAtTime(vel * amp, t + 0.005);
+        g.gain.linearRampToValueAtTime(vel * amp, t + 0.02);   // soft attack, no click
         g.gain.exponentialRampToValueAtTime(0.0001, t + decay);
         o.connect(g).connect(bus);
         o.start(t);
@@ -844,9 +838,9 @@
     function schedule() {
       while (next < ac.currentTime + 0.25) {
         const i = step % TUNE.length;
-        if (TUNE[i]) pluck(TUNE[i], next, 0.3 + (i % 6 === 0 ? 0.08 : 0));
-        if (i % 6 === 0) pluck(BASS[(i / 6) % BASS.length], next, 0.22);
-        next += EIGHTH * (1 + (Math.random() - 0.5) * 0.04);   // a hand-wound wobble
+        if (TUNE[i]) pluck(TUNE[i], next, 0.26 - (i % 4) * 0.02);   // each chord fades as it climbs
+        if (i % 4 === 0) pluck(BASS[(i / 4) % BASS.length], next, 0.2);
+        next += STEP * (1 + (Math.random() - 0.5) * 0.03);       // unhurried, slightly human
         step++;
       }
     }
@@ -869,7 +863,7 @@
           master.connect(ac.destination);
           bus = ac.createGain();
           const wet = ac.createGain();
-          wet.gain.value = 0.45;
+          wet.gain.value = 0.6;
           bus.connect(master);
           bus.connect(reverb()).connect(wet).connect(master);
           next = ac.currentTime + 0.15;
@@ -879,8 +873,8 @@
         if (on) ramp(level, 2.5);
       },
       lift() {                                   // a touch louder for the love note
-        if (level >= 0.22) return;
-        level = 0.22;
+        if (level >= 0.14) return;
+        level = 0.14;
         if (ac && on) ramp(level, 3);
       },
       toggle() {
