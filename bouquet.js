@@ -961,7 +961,10 @@
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = window.innerWidth, h = window.innerHeight;
-    const fontSize = clamp(Math.floor(Math.min(w / 150, h / 125)), 6, 12);
+    // phones get a finer grid: with their dense screens the small glyphs stay sharp,
+    // and the bouquet needs ~200 columns across to read as roses rather than smudges
+    const minFont = dpr >= 2 ? 4 : 6;
+    const fontSize = clamp(Math.floor(Math.min(w / 150, h / 125)), minFont, 12);
     const font = `bold ${fontSize * dpr}px ${MONO}`;
     // whole device pixels per cell, so glyphs land exactly on the pixel grid
     atlas = document.createElement('canvas');
@@ -973,6 +976,10 @@
     cellH = chPx / dpr;
     screen.width = Math.round(w * dpr);
     screen.height = Math.round(h * dpr);
+    // size the canvas in px from the same innerWidth/innerHeight the glow uses: on
+    // phones 100vh counts the hidden URL bar, which stretched the glyphs off the glow
+    screen.style.width = `${w}px`;
+    screen.style.height = `${h}px`;
     cols = Math.ceil(screen.width / cwPx);
     rows = Math.ceil(screen.height / chPx);
     off.width = glow.width = cols;
@@ -1095,6 +1102,7 @@
   }
   const replay = () => { if (stage === 'bloom') t0 = performance.now(); };
   window.addEventListener('resize', resize);
+  if (window.visualViewport) visualViewport.addEventListener('resize', resize);   // phone URL bar
   screen.addEventListener('click', () => (stage === 'intro' ? openLetter() : replay()));
   window.addEventListener('keydown', (e) => {
     const k = e.key.toLowerCase();

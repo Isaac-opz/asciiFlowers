@@ -25,7 +25,7 @@
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
   canvas { position: fixed; top: 0; left: 0; display: block; }
   #glow { opacity: 0.45; pointer-events: none; image-rendering: auto; }
-  #screen { width: 100vw; height: 100vh; cursor: pointer; }
+  #screen { width: 100%; height: 100%; cursor: pointer; }   /* exact px set by the script */
   /* the love note: real script type over the ascii, written in left to right */
   #note {
     position: fixed; transform: translate(-50%, -50%); margin: 0; padding: 0.1em 0.7em;
@@ -64,6 +64,6 @@
 <p id="note"><span></span></p>
 <p id="intro"><span class="typed"></span><span class="cursor">_</span></p>
 <p id="hint" class="gone">toca para abrir</p>
-<script src="bouquet.js?v=fe135551"></script>
+<script src="bouquet.js?v=0f32cb15"></script>
 </body>
 </html>
