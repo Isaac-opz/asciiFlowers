@@ -4,8 +4,6 @@ ASCII lilies and roses, live at https://formylove.isaacs.dev
 
 A wrapped bouquet of white lilies and red roses with ruscus greenery that grows and blooms in coloured ASCII on a black background.
 
-**Live:** https://isaac-opz.github.io/asciiFlowers/
-
 Open `index.html` in a browser. Rendering runs on WebGL: the scene is read back
 once per frame at one pixel per character cell and drawn as glyphs from a
 pre-rendered atlas in a single draw call (with a canvas 2D fallback). It has no dependencies or build step. You can also serve the folder with any static server, for example `npx serve` or VS Code Live Server.
